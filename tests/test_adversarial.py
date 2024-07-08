@@ -27,19 +27,21 @@ class TestAdversarialAttack(unittest.TestCase):
         # denormalize image
         # TODO: add normalization inside the core functions to avoid this step
         cls.img_torch = img_torch * torch.tensor(preprocess.std)[:, None, None] + torch.tensor(preprocess.mean)[:, None, None]
-        cls.img_torch =  cls.img_torch.to_device(device=device)
+        cls.img_torch =  cls.img_torch.to(device=device)
 
     def test_api(self):
         # unsqueeze image
         # TODO: improve the code to avoid this step
         img = self.img_torch.unsqueeze(0)
         # test it returns the same image
-        output, input = self.l2_attacker(input=img, skip_adv_attack=True)
+        output, adv_image = self.l2_attacker(input=img, skip_adv_attack=True)
         # must be the same 
-        torch.testing.assert_close(input, img)
+        torch.testing.assert_close(img, adv_image)
 
-
-    def test_single_image(self):
-        
+    def test_single_image_l2_attack(self):
         img = self.img_torch.unsqueeze(0)
-        output, input = self.l2_attacker()
+        target_class = torch.tensor([0])
+        
+        # check with eps = 0.
+        output, adv_image = self.l2_attacker(input=img, eps=0., target_class=target_class)
+        torch.testing.assert_close(img, adv_image)

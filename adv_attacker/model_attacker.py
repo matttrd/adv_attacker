@@ -13,9 +13,9 @@ class ModelAttacker(Module):
         super(ModelAttacker, self).__init__()
         self._model = model
         if attack_norm == 'l2':
-            self.attack_class = L2Attack
+            self._attack_class = L2Attack
         elif attack_norm == 'linf':
-            self.attack_class = LinfAttack
+            self._attack_class = LinfAttack
         else:
             raise ValueError(f"The attacker {attack_norm} is not implemented.")
         
