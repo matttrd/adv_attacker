@@ -1,36 +1,41 @@
 import unittest
+
 import numpy
-from PIL import Image
-from adv_attacker import ModelAttacker
 import torch
+from PIL import Image
+from torchvision.models import ResNet18_Weights, resnet18  # import a small model
+
+from adv_attacker import ModelAttacker
 from adv_attacker.attacks import L2Attack
 
-from torchvision.models import resnet18, ResNet18_Weights # import a small model
 weights = ResNet18_Weights.DEFAULT
 model = resnet18(weights=weights)
 preprocess = weights.transforms()
 
 # determine the device
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
 
 
 class TestAttacks(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        image_path = 'tests/images/dog_image.jpeg'  # Replace with your image path
+        image_path = "tests/images/dog_image.jpeg"  # Replace with your image path
         img = Image.open(image_path)
         img_torch = preprocess(img)
-        cls.img_torch = img_torch * torch.tensor(preprocess.std)[:, None, None] + torch.tensor(preprocess.mean)[:, None, None]
-        cls.img_torch =  cls.img_torch.to(device=device)
+        cls.img_torch = (
+            img_torch * torch.tensor(preprocess.std)[:, None, None]
+            + torch.tensor(preprocess.mean)[:, None, None]
+        )
+        cls.img_torch = cls.img_torch.to(device=device)
 
     def test_l2_attack(self):
-        attack = L2Attack(self.img_torch.unsqueeze(0), attack_rate=0.0, eps=5.)
+        attack = L2Attack(self.img_torch.unsqueeze(0), attack_rate=0.0, eps=5.0)
 
         # perturb the image and make sure it is the the eps-ball
         img = self.img_torch + 5
         norm = (attack.project_back(img) - self.img_torch).norm()
-        self.assertAlmostEqual(norm, 5., delta=0.1)
+        self.assertAlmostEqual(norm, 5.0, delta=0.1)
 
         # test that with attack rate = 0 it does not change
         # generate a random gradient
@@ -44,15 +49,19 @@ class TestAdversarialAttack(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.rng = numpy.random.default_rng()
         # load a test image
-        image_path = 'tests/images/dog_image.jpeg'
+        image_path = "tests/images/dog_image.jpeg"
         img = Image.open(image_path)
         img_torch = preprocess(img)
-        cls.l2_attacker = ModelAttacker(model=model, attack_norm='l2', mean=preprocess.mean, std=preprocess.std)
+        cls.l2_attacker = ModelAttacker(
+            model=model, attack_norm="l2", mean=preprocess.mean, std=preprocess.std
+        )
         # denormalize image
         # TODO: add normalization inside the core functions to avoid this step
-        cls.img_torch = img_torch * torch.tensor(preprocess.std)[:, None, None] + torch.tensor(preprocess.mean)[:, None, None]
-        cls.img_torch =  cls.img_torch.to(device=device)
-
+        cls.img_torch = (
+            img_torch * torch.tensor(preprocess.std)[:, None, None]
+            + torch.tensor(preprocess.mean)[:, None, None]
+        )
+        cls.img_torch = cls.img_torch.to(device=device)
 
     def test_api(self):
         # unsqueeze image
@@ -60,28 +69,36 @@ class TestAdversarialAttack(unittest.TestCase):
         img = self.img_torch.unsqueeze(0)
         # test it returns the same image
         target_class = torch.tensor([0])
-        output, adv_image = self.l2_attacker(input=img, skip_adv_attack=True, target_class=target_class)
-        # must be the same 
+        output, adv_image = self.l2_attacker(
+            input=img, skip_adv_attack=True, target_class=target_class
+        )
+        # must be the same
         torch.testing.assert_close(img, adv_image)
         self.assertEqual(output.shape, (1, 1000))
 
     def test_single_image_l2_attack(self):
         img = self.img_torch.unsqueeze(0)
         target_class = torch.tensor([0])
-        
+
         # check with eps = 0.
-        output, adv_image = self.l2_attacker(input=img, eps=0.00005, target_class=target_class)
+        output, adv_image = self.l2_attacker(
+            input=img, eps=0.00005, target_class=target_class
+        )
         # check the relative difference is very small
         self.assertLess(((adv_image - img).norm() / img.norm()).item(), 1e-4)
         # check it is a Labrador retriever (see here: https://deeplearning.cms.waikato.ac.nz/user-guide/class-maps/IMAGENET/)
         self.assertEqual(output.argmax().item(), 208)
 
         # check with higher eps
-        output, adv_image = self.l2_attacker(input=img, eps=4, target_class=target_class, attack_rate=0.5)
+        output, adv_image = self.l2_attacker(
+            input=img, eps=4, target_class=target_class, attack_rate=0.5
+        )
         # check we reached the correct target class
         self.assertEqual(output.argmax().item(), 0)
 
         # choose another target class: 38 - banded gecko
         target_class = torch.tensor([38])
-        output, adv_image = self.l2_attacker(input=img, eps=4, target_class=target_class, attack_rate=0.5)
+        output, adv_image = self.l2_attacker(
+            input=img, eps=4, target_class=target_class, attack_rate=0.5
+        )
         self.assertEqual(output.argmax().item(), 38)

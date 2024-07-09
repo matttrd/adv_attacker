@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
-from torch import Tensor
+
 import torch
+from torch import Tensor
+
 
 class BaseAttack(ABC):
     """
@@ -9,6 +11,7 @@ class BaseAttack(ABC):
     Since adversarial attacked are defined in a specific "ball", you need to project back
     after applying the attack.
     """
+
     def __init__(self, original_input: Tensor, attack_rate: float, eps: float) -> None:
         # TODO: docstring
         self._original_input = original_input
@@ -25,6 +28,7 @@ class BaseAttack(ABC):
         """Method that applies one iteration of attack given the input gradient."""
         # TODO: docstring
         pass
+
 
 class L2Attack(BaseAttack):
     def __init__(self, original_input: Tensor, attack_rate: float, eps: float) -> None:
@@ -44,7 +48,7 @@ class L2Attack(BaseAttack):
         clamped_result = torch.clamp(adjusted_input, 0, 1)
 
         return clamped_result
-    
+
     def apply_attack_iteration(self, input: Tensor, grad: Tensor) -> Tensor:
         # we need to normalize the gradient first
         batch_size = grad.shape[0]
@@ -52,9 +56,9 @@ class L2Attack(BaseAttack):
 
         # compute the norm along the second dimension
         g_norm_flattened = torch.norm(flattened_dim, dim=1)
-        
+
         # determine the required number of singleton dimensions to match the original shape
-        ld = len(input.shape) - 1 
+        ld = len(input.shape) - 1
         # reshape the norm result to insert singleton dimensions
         grad_norm = g_norm_flattened.view(-1, *([1] * ld))
         # scale the grad
