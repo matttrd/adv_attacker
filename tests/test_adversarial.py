@@ -3,6 +3,7 @@ import numpy
 from PIL import Image
 from adv_attacker import ModelAttacker
 import torch
+from adv_attacker.attacks import L2Attack
 
 from torchvision.models import resnet18, ResNet18_Weights # import a small model
 weights = ResNet18_Weights.DEFAULT
@@ -13,11 +14,29 @@ preprocess = weights.transforms()
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
 
+
+class TestAttacks(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        image_path = 'tests/images/dog_image.jpeg'  # Replace with your image path
+        img = Image.open(image_path)
+        img_torch = preprocess(img)
+        cls.img_torch = img_torch * torch.tensor(preprocess.std)[:, None, None] + torch.tensor(preprocess.mean)[:, None, None]
+        cls.img_torch =  cls.img_torch.to(device=device)
+
+    def test_l2_attack(self):
+        attack = L2Attack(self.img_torch.unsqueeze(0), attack_rate=0.0, eps=5.)
+
+        # perturb the image and make sure it is the the eps-ball
+        img = self.img_torch + 5
+        (attack.project_back(img) - img).norm()
+
+        pass
+
+
 class TestAdversarialAttack(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        # TODO: initialization
-        #
         cls.rng = numpy.random.default_rng()
         # load a test image
         image_path = 'tests/images/dog_image.jpeg'  # Replace with your image path
