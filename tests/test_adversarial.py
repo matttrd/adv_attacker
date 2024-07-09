@@ -29,19 +29,35 @@ class TestAdversarialAttack(unittest.TestCase):
         cls.img_torch = img_torch * torch.tensor(preprocess.std)[:, None, None] + torch.tensor(preprocess.mean)[:, None, None]
         cls.img_torch =  cls.img_torch.to(device=device)
 
+
     def test_api(self):
         # unsqueeze image
         # TODO: improve the code to avoid this step
         img = self.img_torch.unsqueeze(0)
         # test it returns the same image
-        output, adv_image = self.l2_attacker(input=img, skip_adv_attack=True)
+        target_class = torch.tensor([0])
+        output, adv_image = self.l2_attacker(input=img, skip_adv_attack=True, target_class=target_class)
         # must be the same 
         torch.testing.assert_close(img, adv_image)
+        self.assertEqual(output.shape, (1, 1000))
 
     def test_single_image_l2_attack(self):
         img = self.img_torch.unsqueeze(0)
         target_class = torch.tensor([0])
         
         # check with eps = 0.
-        output, adv_image = self.l2_attacker(input=img, eps=0., target_class=target_class)
-        torch.testing.assert_close(img, adv_image)
+        output, adv_image = self.l2_attacker(input=img, eps=0.00005, target_class=target_class)
+        # check the relative difference is very small
+        self.assertLess(((adv_image - img).norm() / img.norm()).item(), 1e-4)
+        # check it is a Labrador retriever (see here: https://deeplearning.cms.waikato.ac.nz/user-guide/class-maps/IMAGENET/)
+        self.assertEqual(output.argmax().item(), 208)
+
+        # check with higher eps
+        output, adv_image = self.l2_attacker(input=img, eps=4, target_class=target_class, attack_rate=0.5)
+        # check we reached the correct target class
+        self.assertEqual(output.argmax().item(), 0)
+
+        # choose another target class: 38 - banded gecko
+        target_class = torch.tensor([38])
+        output, adv_image = self.l2_attacker(input=img, eps=4, target_class=target_class, attack_rate=0.5)
+        self.assertEqual(output.argmax().item(), 38)

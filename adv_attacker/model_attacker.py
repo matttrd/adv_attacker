@@ -32,7 +32,12 @@ class ModelAttacker(Module):
         :param target: the target class tensor.
         :return: A tuple of output and loss for the input image.
         """
-        output = self._model(input)
+        # TODO: give normalization to the constructor
+        mean = torch.tensor([0.485, 0.456, 0.406])[:, None, None]
+        std = torch.tensor([0.229, 0.224, 0.225])[:, None, None]
+        norm_input = (input - mean) / std
+        output = self._model(norm_input)
+        # output = self._model(input)
         return self._loss_function(output, target), output
 
     def forward(self,
@@ -69,20 +74,22 @@ class ModelAttacker(Module):
                 # we need to copy the image and detach to avoid the gradient propagation
                 adv_image = adv_image.clone().detach()
                 # we need to compute the grad so we must activate it
-                adv_image.requires_grad_(True)
-                batch_loss, batch_output = self._get_loss_and_output(input=adv_image, target=target_class)
+                adv_image = adv_image.requires_grad_(True)
+                # output = self._model(adv_image)
+                # batch_loss = self._loss_function(output, target_class)
+                batch_loss, output = self._get_loss_and_output(input=adv_image, target=target_class)
                 loss = batch_loss.mean()
                 # TODO: modify here if want to do non-target attacks
-                grad, = torch.autograd.grad(loss, [adv_image])
+                grad, = torch.autograd.grad(-loss, [adv_image])
 
                 # now we need to apply the attack but make sure we don't compute any gradient (we may not need this)
                 with torch.no_grad():
-                    attacker.apply_attack_iteration(input=adv_image, grad=grad)
+                    adv_image = attacker.apply_attack_iteration(input=adv_image, grad=grad)
                     # project back to make sure to stay in the correct interval
                     adv_image = attacker.project_back(adv_image)
 
         else:
             adv_image = input
+            output = self._model(adv_image)
 
-        output = self._model(adv_image)
-        return output, input
+        return output, adv_image

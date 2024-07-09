@@ -51,7 +51,7 @@ class L2Attack(BaseAttack):
     def apply_attack_iteration(self, input: Tensor, grad: Tensor) -> Tensor:
         # we need to normalize the gradient first
         batch_size = grad.shape[0]
-        flattened_dim = grad.view(batch_size, -1)
+        flattened_dim = grad.reshape(batch_size, -1)
 
         # compute the norm along the second dimension
         g_norm_flattened = torch.norm(flattened_dim, dim=1)
