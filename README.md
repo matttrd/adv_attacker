@@ -22,9 +22,12 @@ Library for applying adversarial attacks.
 The following example shows how to generate an adversarial attack for a test image.
 
 ```python
-
 from PIL import Image 
 from torchvision.models import resnet18, ResNet18_Weights # import a small model
+
+import torch
+from adv_attacker import ModelAttacker
+from adv_attacker.attacks import L2Attack
 
 weights = ResNet18_Weights.DEFAULT
 model = resnet18(weights=weights)
@@ -60,7 +63,7 @@ print(f"Predicted class is {output.argmax().item()}")
 ## What is missing
 
 - Apply random noise before starting to improve the attack strength.
-- Apply` N` random starts to find better attacks.
+- Apply `N` random starts to find better attacks.
 - Select the best attack along the adversarial path and in case of multiple random starts.
 - Attack using the `l-infinity` norm.
 - Better tests
