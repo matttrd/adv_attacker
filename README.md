@@ -19,7 +19,7 @@ Library for applying adversarial attack
     ```
 
 ## Quickstart
-The following example shows 
+The following example shows how to generate an adversarial attack for a test image.
 
 ```python
 

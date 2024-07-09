@@ -44,7 +44,7 @@ class TestAdversarialAttack(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.rng = numpy.random.default_rng()
         # load a test image
-        image_path = 'tests/images/dog_image.jpeg'  # Replace with your image path
+        image_path = 'tests/images/dog_image.jpeg'
         img = Image.open(image_path)
         img_torch = preprocess(img)
         cls.l2_attacker = ModelAttacker(model=model, attack_norm='l2', mean=preprocess.mean, std=preprocess.std)
