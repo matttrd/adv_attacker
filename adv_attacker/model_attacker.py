@@ -67,7 +67,8 @@ class ModelAttacker(Module):
             assert eps is not None, "`eps` must be a valid float number"
             input = input.to(device=device)
             assert target_class is not None, "Must specify a target class in the current implementation."
-                        
+            target_class = target_class.to(device=device)
+
             attacker = self._attack_class(original_input=input, eps=eps, attack_rate=attack_rate)
             adv_image = input.detach()
             
