@@ -68,4 +68,4 @@ print(f"Predicted class is {output.argmax().item()}")
 - I used a very simple formatter/sorter but there are better options online
 - Generalization to other source types, e.g. time series
 - Now the user needs to provide a batch and not a single image. We could do it internally if necessary
-- Many other improvements, e.g. support for custom losses etc...
+- Many other improvements, e.g. support for custom losses, support for untarged attacks etc.
