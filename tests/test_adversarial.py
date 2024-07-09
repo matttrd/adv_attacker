@@ -19,11 +19,11 @@ class TestAdversarialAttack(unittest.TestCase):
         # TODO: initialization
         #
         cls.rng = numpy.random.default_rng()
-        cls.l2_attacker = ModelAttacker(model=model, attack_norm='l2')
         # load a test image
         image_path = 'tests/images/dog_image.jpeg'  # Replace with your image path
         img = Image.open(image_path)
         img_torch = preprocess(img)
+        cls.l2_attacker = ModelAttacker(model=model, attack_norm='l2', mean=preprocess.mean, std=preprocess.std)
         # denormalize image
         # TODO: add normalization inside the core functions to avoid this step
         cls.img_torch = img_torch * torch.tensor(preprocess.std)[:, None, None] + torch.tensor(preprocess.mean)[:, None, None]

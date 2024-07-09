@@ -9,7 +9,12 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class ModelAttacker(Module):
     # TODO : docstring
-    def __init__(self, model, attack_norm: str, loss_function: Optional[callable] = None):
+    def __init__(self, model, 
+                attack_norm: str, 
+                loss_function: Optional[callable] = None,
+                mean: Optional[list | Tensor] = None, 
+                std: Optional[list | Tensor] = None):
+        
         super(ModelAttacker, self).__init__()
         self._model = model
         if attack_norm == 'l2':
@@ -24,6 +29,11 @@ class ModelAttacker(Module):
             # use standard one
             self._loss_function = torch.nn.CrossEntropyLoss(reduction='none').to(device=device)
 
+        self._mean = mean if isinstance(mean, Tensor) else torch.tensor(mean)
+        self._std = std if isinstance(std, Tensor) else torch.tensor(std)
+        self._mean = self._mean.to(device=device)
+        self._std = self._std.to(device=device)
+
     def _get_loss_and_output(self, input: Tensor, target: Tensor) -> tuple[Tensor, Tensor]:
         """
         Compute the loss for the batch.
@@ -32,12 +42,15 @@ class ModelAttacker(Module):
         :param target: the target class tensor.
         :return: A tuple of output and loss for the input image.
         """
-        # TODO: give normalization to the constructor
-        mean = torch.tensor([0.485, 0.456, 0.406])[:, None, None]
-        std = torch.tensor([0.229, 0.224, 0.225])[:, None, None]
+        if self._mean is None:
+            mean =  torch.tensor([0.,0.,0.])
+            std = torch.tensor([1.,1.,1.])
+       
+        mean = self._mean[:, None, None]
+        std = self._std[:, None, None]
+
         norm_input = (input - mean) / std
         output = self._model(norm_input)
-        # output = self._model(input)
         return self._loss_function(output, target), output
 
     def forward(self,
