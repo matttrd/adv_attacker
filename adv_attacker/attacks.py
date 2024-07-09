@@ -13,7 +13,14 @@ class BaseAttack(ABC):
     """
 
     def __init__(self, original_input: Tensor, attack_rate: float, eps: float) -> None:
-        # TODO: docstring
+        """
+        Constructor for the `BaseAttack` class.
+
+        :param original_input: The original image.
+        :param attack_rate: The attack rate used for the attack:
+            x_{new} = x_{orig} + attack_rate \times normalized_gradient.
+        :param eps: The maximum norm of attack.
+        """
         self._original_input = original_input
         self._attack_rate = attack_rate
         self._eps = eps
@@ -26,15 +33,20 @@ class BaseAttack(ABC):
     @abstractmethod
     def apply_attack_iteration(self, input: Tensor, grad: Tensor) -> Tensor:
         """Method that applies one iteration of attack given the input gradient."""
-        # TODO: docstring
         pass
 
 
 class L2Attack(BaseAttack):
+    """Class for l2-attacks."""
+
     def __init__(self, original_input: Tensor, attack_rate: float, eps: float) -> None:
         super().__init__(original_input, attack_rate, eps)
 
     def project_back(self, input: Tensor) -> Tensor:
+        """
+        Project back to the l2-norm by constraining the different to a maximum
+        norm of `eps`.
+        """
         # compute the difference between x and the original input
         diff = input - self._original_input
 
@@ -50,6 +62,7 @@ class L2Attack(BaseAttack):
         return clamped_result
 
     def apply_attack_iteration(self, input: Tensor, grad: Tensor) -> Tensor:
+        """Apply one iteration of the attack: x_{new} = x_{orig} + attack_rate \times normalized_gradient."""
         # we need to normalize the gradient first
         batch_size = grad.shape[0]
         flattened_dim = grad.reshape(batch_size, -1)
@@ -69,5 +82,7 @@ class L2Attack(BaseAttack):
 
 
 class LinfAttack(BaseAttack):
+    """Class for linf-attacks."""
+
     # TODO: class for l-\infty
     pass

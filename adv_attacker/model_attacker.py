@@ -10,16 +10,29 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class ModelAttacker(Module):
-    # TODO : docstring
+    """
+    Module for the model attacker.
+
+    This module takes in input the original image and outpouts the adversarial example/
+    """
+
     def __init__(
         self,
-        model,
+        model: Module,
         attack_norm: str,
         loss_function: Optional[callable] = None,
         mean: Optional[list | Tensor] = None,
         std: Optional[list | Tensor] = None,
     ):
+        """
+        Constructor for the `ModelAttacker`.
 
+        :param model: The model to attack.
+        :param attack_norm: The norm used for the attack. Currently, only `"l2"` is available.
+        :param loss_function: The loss function to use. If `None`, use the standard `torch.nn.CrossEntropyLoss`.
+        :param mean: The mean of the provided dataset. If `None`, assume zero mean.
+        :param std: The standard deviation of the provided dataset. If `None`, assume zero std.
+        """
         super(ModelAttacker, self).__init__()
         self._model = model
         if attack_norm == "l2":
@@ -71,7 +84,16 @@ class ModelAttacker(Module):
         num_steps: int = 8,
         skip_adv_attack: bool = False,
     ) -> tuple[Tensor, Tensor]:
+        """
+        Apply the adversarial attack.
 
+        :param input: The input image.
+        :param target_class: The target class.
+        :param eps: The maximum norm value of the perturbation. If `skip_adv_attack` is False you need to provide
+            a valid float number.
+        :param attack_rate: The coefficient applied to the normalized gradient to form the perturbation.
+            The new image, after one step, will be x_{new} = x_{orig} + attack_rate \times normalized_gradient.
+        """
         if not skip_adv_attack:
             # TODO: implement forward method for attacker
             assert eps is not None, "`eps` must be a valid float number"
