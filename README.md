@@ -1,6 +1,44 @@
 # adv_attacker
 Library for applying adversarial attacks.
 
+### Prerequisites
+
+Make sure you have Python installed on your system. This package is built using [Poetry](https://python-poetry.org/), so you need to install Poetry first.
+
+### Installing Poetry
+
+Poetry is a tool for dependency management and packaging in Python. It helps you declare, manage, and install dependencies of Python projects. Here’s how to install Poetry:
+
+1. **Using the official installer:**
+
+    Open a terminal and run the following command:
+
+    ```sh
+    curl -sSL https://install.python-poetry.org | python3 -
+    ```
+
+2. **Add Poetry to your PATH:**
+
+    After installation, you need to add Poetry to your PATH. Add the following line to your shell configuration file (e.g., `.bashrc`, `.zshrc`, etc.):
+
+    ```sh
+    export PATH="$HOME/.local/bin:$PATH"
+    ```
+
+3. **Verify the installation:**
+
+    Restart your terminal or source your shell configuration file:
+
+    ```sh
+    source ~/.bashrc  # or source ~/.zshrc
+    ```
+
+    Then check the installation by running:
+
+    ```sh
+    poetry --version
+    ```
+    
 ## How to install it
 
 1. **Clone the Repository**
