@@ -1,5 +1,5 @@
 # adv_attacker
-Library for applying adversarial attack
+Library for applying adversarial attacks.
 
 ## How to install it
 
@@ -57,5 +57,15 @@ output, adv_image = l2_attacker(input=denorm_img, eps=1, target_class=target_cla
 print(f"Predicted class is {output.argmax().item()}")
 ```
 
-## Configuration
-# TODO: description
+## What is missing
+
+- Apply random noise before starting to improve the attack strength.
+- Apply` N` random starts to find better attacks.
+- Select the best attack along the adversarial path and in case of multiple random starts.
+- Attack using the `l-infinity` norm.
+- Better tests
+- All the product workflow: branch rules, github actions, etc
+- I used a very simple formatter/sorter but there are better options online
+- Generalization to other source types, e.g. time series
+- Now the user needs to provide a batch and not a single image. We could do it internally if necessary
+- Many other improvements, e.g. support for custom losses etc...
