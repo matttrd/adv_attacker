@@ -34,11 +34,8 @@ class L2Attack(BaseAttack):
         # compute the difference between x and the original input
         diff = input - self._original_input
 
-        # compute the L2 norm of the difference
-        norm = torch.norm(diff, p=2, dim=0, keepdim=True)
-
         # scale the difference to have a maximum norm of eps
-        scaled_diff= diff.renorm(p=2, dim=0, maxnorm=self._eps)
+        scaled_diff = diff.renorm(p=2, dim=0, maxnorm=self._eps)
 
         # add the scaled difference back to the original input
         adjusted_input = self._original_input + scaled_diff

@@ -29,9 +29,14 @@ class TestAttacks(unittest.TestCase):
 
         # perturb the image and make sure it is the the eps-ball
         img = self.img_torch + 5
-        (attack.project_back(img) - img).norm()
+        norm = (attack.project_back(img) - self.img_torch).norm()
+        self.assertAlmostEqual(norm, 5., delta=0.1)
 
-        pass
+        # test that with attack rate = 0 it does not change
+        # generate a random gradient
+        grad = torch.rand_like(img)
+        pert_img = attack.apply_attack_iteration(input=img, grad=grad)
+        torch.testing.assert_close(pert_img, img)
 
 
 class TestAdversarialAttack(unittest.TestCase):
